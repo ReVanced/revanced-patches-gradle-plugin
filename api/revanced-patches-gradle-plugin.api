@@ -1,0 +1,46 @@
+public abstract class app/revanced/patches/gradle/ExtensionExtension {
+	public fun <init> ()V
+	public abstract fun getName ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class app/revanced/patches/gradle/ExtensionPlugin : org/gradle/api/Plugin {
+	public fun <init> ()V
+	public synthetic fun apply (Ljava/lang/Object;)V
+	public fun apply (Lorg/gradle/api/Project;)V
+}
+
+public abstract class app/revanced/patches/gradle/PatchesExtension {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun about (Lkotlin/jvm/functions/Function1;)V
+	public abstract fun getExtensionsProjectPath ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class app/revanced/patches/gradle/PatchesExtension$About {
+	public fun <init> (Lorg/gradle/api/Project;)V
+	public abstract fun getAuthor ()Lorg/gradle/api/provider/Property;
+	public abstract fun getContact ()Lorg/gradle/api/provider/Property;
+	public abstract fun getDescription ()Lorg/gradle/api/provider/Property;
+	public abstract fun getLicense ()Lorg/gradle/api/provider/Property;
+	public abstract fun getName ()Lorg/gradle/api/provider/Property;
+	public abstract fun getSource ()Lorg/gradle/api/provider/Property;
+	public abstract fun getWebsite ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class app/revanced/patches/gradle/PatchesPlugin : org/gradle/api/Plugin {
+	public fun <init> ()V
+	public synthetic fun apply (Ljava/lang/Object;)V
+	public fun apply (Lorg/gradle/api/Project;)V
+}
+
+public abstract class app/revanced/patches/gradle/SettingsExtension {
+	public fun <init> ()V
+	public abstract fun getExtensionsProjectPath ()Lorg/gradle/api/provider/Property;
+	public abstract fun getPatchesProjectPath ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract class app/revanced/patches/gradle/SettingsPlugin : org/gradle/api/Plugin {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public synthetic fun apply (Ljava/lang/Object;)V
+	public fun apply (Lorg/gradle/api/initialization/Settings;)V
+}
+

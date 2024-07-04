@@ -1,0 +1,16 @@
+[versions]
+kotlin = "2.0.0"
+pluginPublish = "1.2.1"
+binary-compatibility-validator = "0.15.1"
+#noinspection GradleDependency
+agp = "8.2.2" # 8.3.0 causes Java verifier error: https://github.com/ReVanced/revanced-patches/issues/2818
+
+[libraries]
+binary-compatibility-validator = { module = "org.jetbrains.kotlinx.binary-compatibility-validator:org.jetbrains.kotlinx.binary-compatibility-validator.gradle.plugin", version.ref = "binary-compatibility-validator" }
+kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-android = { module = "org.jetbrains.kotlin.android:org.jetbrains.kotlin.android.gradle.plugin", version.ref = "kotlin" }
+android-application = { module = "com.android.application:com.android.application.gradle.plugin", version.ref = "agp" }
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin"}
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-compatibility-validator" }
