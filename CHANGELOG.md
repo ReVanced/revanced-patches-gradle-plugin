@@ -1,3 +1,10 @@
+# [1.0.0-dev.3](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2024-08-08)
+
+
+### Bug Fixes
+
+* Build DEX from patches file by using internal APIs instead of CLIs ([2597efe](https://github.com/ReVanced/revanced-patches-gradle-plugin/commit/2597efe474f24c93b68e0683bc0e9622e48623d1))
+
 # [1.0.0-dev.2](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2024-08-06)
 
 
