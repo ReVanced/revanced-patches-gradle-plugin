@@ -22,6 +22,7 @@ import org.gradle.plugins.signing.SigningExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
+import java.io.File
 
 @Suppress("unused")
 abstract class PatchesPlugin : Plugin<Project> {
@@ -118,7 +119,7 @@ abstract class PatchesPlugin : Plugin<Project> {
             task.dependsOn(tasks["jar"])
 
             task.doLast {
-                val workingDirectory = layout.buildDirectory.dir("revanced").get().asFile
+                val workingDirectory = layout.buildDirectory.dir("revanced").get().asFile.also(File::mkdirs)
 
                 val patchesFile = tasks["jar"].outputs.files.first()
                 val classesZipFile = workingDirectory.resolve("classes.zip")
