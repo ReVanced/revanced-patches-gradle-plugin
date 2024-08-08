@@ -16,12 +16,14 @@ repositories {
 }
 
 dependencies {
-    implementation(gradleApi())
-    implementation(gradleKotlinDsl())
+    implementation(libs.android.application)
     implementation(libs.binary.compatibility.validator)
+    implementation(libs.guava)
     implementation(libs.kotlin)
     implementation(libs.kotlin.android)
-    implementation(libs.android.application)
+
+    implementation(gradleApi())
+    implementation(gradleKotlinDsl())
 }
 
 java {

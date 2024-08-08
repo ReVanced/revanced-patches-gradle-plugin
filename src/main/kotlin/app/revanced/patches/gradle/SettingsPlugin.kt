@@ -31,10 +31,8 @@ abstract class SettingsPlugin @Inject constructor(
                 // A repository must be specified. "registry" is a dummy.
                 repository.url = URI("https://maven.pkg.github.com/revanced/registry")
                 repository.credentials {
-                    it.username = providers.gradleProperty("gpr.user")
-                        .orElse(System.getenv("GITHUB_ACTOR")).get()
-                    it.password = providers.gradleProperty("gpr.key")
-                        .orElse(System.getenv("GITHUB_TOKEN")).get()
+                    it.username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                    it.password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
                 }
             }
         }
