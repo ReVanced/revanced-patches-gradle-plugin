@@ -1,3 +1,10 @@
+# [1.0.0-dev.4](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2024-08-08)
+
+
+### Bug Fixes
+
+* Create working directory before trying to use it ([715fb96](https://github.com/ReVanced/revanced-patches-gradle-plugin/commit/715fb96382037fd66351e5735e39a3dd512b1346))
+
 # [1.0.0-dev.3](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2024-08-08)
 
 
