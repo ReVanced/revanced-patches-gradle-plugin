@@ -1,3 +1,10 @@
+# [1.0.0-dev.5](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2024-09-08)
+
+
+### Bug Fixes
+
+* Create a dummy publishing repository to fix publications & signing ([397b7b3](https://github.com/ReVanced/revanced-patches-gradle-plugin/commit/397b7b3393fc06f0002536486096fff100abe7ad))
+
 # [1.0.0-dev.4](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2024-08-08)
 
 
