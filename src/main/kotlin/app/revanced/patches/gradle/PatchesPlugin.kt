@@ -140,6 +140,12 @@ abstract class PatchesPlugin : Plugin<Project> {
         pluginManager.apply("maven-publish")
 
         extensions.configure(PublishingExtension::class.java) { extension ->
+            // Necessary for the signing plugin for a publication to be created
+            // and the signing plugin to sign the publication, when no repositories are defined.
+            extension.repositories.mavenLocal {
+                it.name = "DummyMavenLocal"
+            }
+
             extension.publications { container ->
                 container.create("revanced-patches-publication", MavenPublication::class.java) {
                     it.from(components["java"])
