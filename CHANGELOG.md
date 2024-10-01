@@ -1,3 +1,5 @@
+# [1.0.0-dev.6](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2024-10-01)
+
 # [1.0.0-dev.5](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2024-09-08)
 
 
