@@ -71,11 +71,11 @@ ReVanced Patches Gradle plugin configures a project to develop ReVanced Patches.
 
 For that, the plugin provides:
 
-- The [settings plugin](plugin/src/main/kotlin/app/revanced/patches/gradle/SettingsPlugin.kt):
+- The [settings plugin](src/main/kotlin/app/revanced/patches/gradle/SettingsPlugin.kt):
 Applied to the `settings.gradle.kts` file, configures the project repositories and subprojects
-- The [patches plugin](plugin/src/main/kotlin/app/revanced/patches/gradle/PatchesPlugin.kt):
+- The [patches plugin](src/main/kotlin/app/revanced/patches/gradle/PatchesPlugin.kt):
 Applied to the patches subproject by the settings plugin
-- The [extension plugin](plugin/src/main/kotlin/app/revanced/patches/gradle/ExtensionPlugin.kt):
+- The [extension plugin](src/main/kotlin/app/revanced/patches/gradle/ExtensionPlugin.kt):
 Applied to extension subprojects by the settings plugin
 
 > [!CAUTION]
