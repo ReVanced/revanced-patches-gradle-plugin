@@ -7,6 +7,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.Sync
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.register
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 import kotlin.io.path.Path
@@ -25,30 +27,31 @@ abstract class ExtensionPlugin : Plugin<Project> {
      * Setup sharing the extension dex file with the consuming patches project.
      */
     private fun Project.configureArtifactSharing(extension: ExtensionExtension) {
-        val syncExtensionTask = tasks.register("syncExtension", Sync::class.java) {
-            it.apply {
-                dependsOn("assembleRelease")
-
-                val apk = layout.buildDirectory.dir("outputs/apk/release").map { dir ->
-                    dir.asFile.listFiles { _, name -> name.endsWith(".apk") }!!.first()
-                }
-
-                from(zipTree(apk).matching { include("classes.dex") })
-                into(
-                    layout.buildDirectory.zip(extension.name) { buildDirectory, extensionName ->
-                        buildDirectory.dir("revanced/${Path(extensionName).parent.pathString}")
-                    },
-                )
-
-                rename { "${Path(extension.name.get()).fileName}" }
+        val androidExtension = extensions.getByType<BaseAppModuleExtension>()
+        val syncExtensionTask = tasks.register<Sync>("syncExtension") {
+            val dexTaskName = if (androidExtension.buildTypes.getByName("release").isMinifyEnabled) {
+                "minifyReleaseWithR8"
+            } else {
+                "mergeDexRelease"
             }
+
+            val dexTask = tasks.getByName(dexTaskName)
+
+            dependsOn(dexTask)
+
+            from(dexTask.outputs.files.asFileTree.matching { include("**/*.dex") })
+            into(layout.buildDirectory.dir("revanced/${Path(extension.name.get()).parent.pathString}"))
+
+            rename { Path(extension.name.get()).fileName.toString() }
         }
 
-        configurations.consumable("extensionConfiguration").also { configuration ->
-            artifacts.add(
-                configuration.name,
-                layout.buildDirectory.dir("revanced"),
-            ) { artifact -> artifact.builtBy(syncExtensionTask) }
+        configurations.create("extensionConfiguration").apply {
+            isCanBeResolved = false
+            isCanBeConsumed = true
+
+            outgoing.artifact(layout.buildDirectory.dir("revanced")) {
+                it.builtBy(syncExtensionTask)
+            }
         }
     }
 
