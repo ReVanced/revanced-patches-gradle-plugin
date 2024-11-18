@@ -87,13 +87,13 @@ abstract class ExtensionPlugin : Plugin<Project> {
                 }
 
                 compileOptions {
-                    sourceCompatibility = JavaVersion.VERSION_11
-                    targetCompatibility = JavaVersion.VERSION_11
+                    sourceCompatibility = JavaVersion.VERSION_17
+                    targetCompatibility = JavaVersion.VERSION_17
                 }
 
                 this as ExtensionAware
                 this.extensions.configure<KotlinJvmOptions>("kotlinOptions") { options ->
-                    options.jvmTarget = JavaVersion.VERSION_11.toString()
+                    options.jvmTarget = JavaVersion.VERSION_17.toString()
                 }
             }
         }
