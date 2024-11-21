@@ -39,10 +39,16 @@ abstract class ExtensionPlugin : Plugin<Project> {
 
             dependsOn(dexTask)
 
-            from(dexTask.outputs.files.asFileTree.matching { include("**/*.dex") })
-            into(layout.buildDirectory.dir("revanced/${Path(extension.name.get()).parent.pathString}"))
+            val extensionName = if (extension.name != null) {
+                Path(extension.name!!)
+            } else {
+                projectDir.resolveSibling(project.name + ".rve").relativeTo(rootDir).toPath()
+            }
 
-            rename { Path(extension.name.get()).fileName.toString() }
+            from(dexTask.outputs.files.asFileTree.matching { include("**/*.dex") })
+            into(layout.buildDirectory.dir("revanced/${extensionName.parent.pathString}"))
+
+            rename { extensionName.fileName.toString() }
         }
 
         configurations.create("extensionConfiguration").apply {

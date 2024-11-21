@@ -186,13 +186,13 @@ abstract class PatchesPlugin : Plugin<Project> {
      */
     private fun Project.configureConsumeExtensions(patchesExtension: PatchesExtension) {
         val extensionsProject = try {
-            project(patchesExtension.extensionsProjectPath.get())
+            project(patchesExtension.extensionsProjectPath ?: return)
         } catch (e: UnknownProjectException) {
             return
         }
 
-        val extensionProjects = extensionsProject.subprojects.filter {
-            it.parent == extensionsProject
+        val extensionProjects = extensionsProject.subprojects.filter { extensionProject ->
+            extensionProject.plugins.hasPlugin(ExtensionPlugin::class.java)
         }
 
         val extensionsDependencyScopeConfiguration =
@@ -232,8 +232,8 @@ private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
         it.manifest.apply {
             attributes["Name"] = patchesExtension.about.name
             attributes["Description"] = patchesExtension.about.description
-            attributes["Version"] = patchesExtension.about.version
-            attributes["Timestamp"] = patchesExtension.about.timestamp
+            attributes["Version"] = project.version.toString()
+            attributes["Timestamp"] = System.currentTimeMillis().toString()
             attributes["Source"] = patchesExtension.about.source
             attributes["Author"] = patchesExtension.about.author
             attributes["Contact"] = patchesExtension.about.contact
