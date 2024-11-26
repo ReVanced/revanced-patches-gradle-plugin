@@ -11,13 +11,30 @@ open class SettingsExtension {
     val extensions = ExtensionsExtension()
 
     fun extensions(block: ExtensionsExtension.() -> Unit) {
-        ExtensionsExtension().apply(block)
+        extensions.apply(block)
     }
 
     class ExtensionsExtension {
         /**
-         * The path to the project containing the extension projects.
+         * The path containing the extension projects.
          */
-        var projectPath: String? = "extensions"
+        var projectsPath: String? = "extensions"
+
+        /**
+         * The default namespace for the extension projects.
+         */
+        var defaultNamespace: String? = null
+
+        internal val proguardFiles = mutableSetOf<String>()
+
+        /**
+         * Add proguard files to the extension projects relative to the project root.
+         * Minification will be enabled if at least one file is provided.
+         *
+         * @param files The proguard files to add.
+         */
+        fun proguardFiles(vararg files: String) {
+            proguardFiles += files
+        }
     }
 }

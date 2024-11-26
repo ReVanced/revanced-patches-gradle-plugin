@@ -19,7 +19,10 @@ abstract class ExtensionPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create("extension", ExtensionExtension::class.java)
 
-        project.configureAndroid()
+        val settingsExtensionProvider = project.gradle.sharedServices.registrations
+            .findByName("settingsExtensionProvider")!!.service.get() as SettingsExtensionProvider
+
+        project.configureAndroid(settingsExtensionProvider)
         project.configureArtifactSharing(extension)
     }
 
@@ -64,7 +67,7 @@ abstract class ExtensionPlugin : Plugin<Project> {
     /**
      * Set up the Android plugin for the extension project.
      */
-    private fun Project.configureAndroid() {
+    private fun Project.configureAndroid(settingsExtensionProvider: SettingsExtensionProvider) {
         pluginManager.apply {
             apply(AppPlugin::class.java)
             apply(KotlinAndroidPluginWrapper::class.java)
@@ -72,7 +75,8 @@ abstract class ExtensionPlugin : Plugin<Project> {
 
         extensions.configure(BaseAppModuleExtension::class.java) {
             it.apply {
-                compileSdk = 33
+                compileSdk = 34
+                namespace = settingsExtensionProvider.parameters.defaultNamespace
 
                 defaultConfig {
                     minSdk = 23
@@ -81,13 +85,11 @@ abstract class ExtensionPlugin : Plugin<Project> {
 
                 buildTypes {
                     release {
-                        // If this were true by default, and no proguard files would be present,
-                        // no dex file would be generated.
-                        isMinifyEnabled = false
+                        isMinifyEnabled = settingsExtensionProvider.parameters.proguardFiles.isNotEmpty()
 
                         proguardFiles(
                             getDefaultProguardFile("proguard-android-optimize.txt"),
-                            "proguard-rules.pro",
+                            *settingsExtensionProvider.parameters.proguardFiles.toTypedArray(),
                         )
                     }
                 }

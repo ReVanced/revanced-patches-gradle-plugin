@@ -14,6 +14,18 @@ abstract class SettingsPlugin @Inject constructor(
     override fun apply(settings: Settings) {
         val extension = settings.extensions.create("settings", SettingsExtension::class.java)
 
+        settings.gradle.settingsEvaluated {
+            settings.gradle.sharedServices.registerIfAbsent(
+                "settingsExtensionProvider",
+                SettingsExtensionProvider::class.java,
+            ) {
+                it.parameters.apply {
+                    defaultNamespace = extension.extensions.defaultNamespace
+                    proguardFiles = extension.extensions.proguardFiles
+                }
+            }
+        }
+
         settings.configureDependencies()
         settings.configureProjects(extension)
     }
@@ -43,7 +55,7 @@ abstract class SettingsPlugin @Inject constructor(
     private fun Settings.configureProjects(extension: SettingsExtension) {
         // region Include the projects
 
-        val extensionsProjectPath = extension.extensions.projectPath ?: return
+        val extensionsProjectPath = extension.extensions.projectsPath ?: return
 
         objectFactory.fileTree().from(rootDir.resolve(extensionsProjectPath)).matching {
             it.include("**/build.gradle.kts")
