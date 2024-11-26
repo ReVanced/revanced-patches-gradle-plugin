@@ -14,9 +14,20 @@ abstract class SettingsPlugin @Inject constructor(
     override fun apply(settings: Settings) {
         val extension = settings.extensions.create("settings", SettingsExtension::class.java)
 
+        settings.gradle.settingsEvaluated {
+            settings.gradle.sharedServices.registerIfAbsent(
+                "settingsExtensionProvider",
+                SettingsExtensionProvider::class.java,
+            ) {
+                it.parameters.apply {
+                    defaultNamespace = extension.extensions.defaultNamespace
+                    proguardFiles = extension.extensions.proguardFiles
+                }
+            }
+        }
+
         settings.configureDependencies()
-        settings.configureIncludeProjects(extension)
-        settings.configurePlugins(extension)
+        settings.configureProjects(extension)
     }
 
     /**
@@ -31,46 +42,54 @@ abstract class SettingsPlugin @Inject constructor(
                 // A repository must be specified. "registry" is a dummy.
                 repository.url = URI("https://maven.pkg.github.com/revanced/registry")
                 repository.credentials {
-                    it.username = providers.gradleProperty("gpr.user")
-                        .orElse(System.getenv("GITHUB_ACTOR")).get()
-                    it.password = providers.gradleProperty("gpr.key")
-                        .orElse(System.getenv("GITHUB_TOKEN")).get()
+                    it.username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                    it.password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
                 }
             }
-        }
-    }
-
-    /**
-     * Add the patches and extension projects to the root project.
-     */
-    private fun Settings.configureIncludeProjects(extension: SettingsExtension) {
-        include(extension.patchesProjectPath.get())
-
-        objectFactory.fileTree().from(settingsDir.resolve(extension.extensionsProjectPath.get())).matching {
-            it.include("**/build.gradle.kts")
-        }.forEach {
-            include(it.relativeTo(settingsDir).toPath().joinToString(":"))
         }
     }
 
     /**
      * Adds the required plugins to the patches and extension projects.
      */
-    private fun Settings.configurePlugins(extension: SettingsExtension) {
-        gradle.rootProject { rootProject ->
-            rootProject.project(extension.patchesProjectPath.get()).pluginManager.apply(PatchesPlugin::class.java)
+    private fun Settings.configureProjects(extension: SettingsExtension) {
+        // region Include the projects
 
-            try {
-                rootProject.project(extension.extensionsProjectPath.get())
+        val extensionsProjectPath = extension.extensions.projectsPath ?: return
+
+        objectFactory.fileTree().from(rootDir.resolve(extensionsProjectPath)).matching {
+            it.include("**/build.gradle.kts")
+        }.forEach {
+            include(it.relativeTo(rootDir).toPath().joinToString(":"))
+        }
+
+        include(extension.patchesProjectPath)
+
+        // endregion
+
+        // region Apply the plugins
+
+        gradle.rootProject { rootProject ->
+            val extensionsProject = try {
+                rootProject.project(extensionsProjectPath)
             } catch (e: UnknownProjectException) {
                 return@rootProject
-            }.let { extensionsProject ->
-                extensionsProject.subprojects { extensionProject ->
-                    if (extensionProject.parent != extensionsProject) return@subprojects
+            }
 
+            extensionsProject.subprojects { extensionProject ->
+                if (
+                    extensionProject.buildFile.exists() &&
+                    !extensionProject.parent!!.plugins.hasPlugin(ExtensionPlugin::class.java)
+                ) {
                     extensionProject.pluginManager.apply(ExtensionPlugin::class.java)
                 }
             }
+
+            // Needs to be applied after the extension plugin
+            // so that their extensionConfiguration is available for consumption.
+            rootProject.project(extension.patchesProjectPath).pluginManager.apply(PatchesPlugin::class.java)
         }
+
+        // endregion
     }
 }

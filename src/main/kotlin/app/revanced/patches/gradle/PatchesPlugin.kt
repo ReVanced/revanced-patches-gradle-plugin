@@ -1,5 +1,11 @@
 package app.revanced.patches.gradle
 
+import com.android.tools.build.apkzlib.zip.ZFile
+import com.android.tools.r8.CompilationMode
+import com.android.tools.r8.D8
+import com.android.tools.r8.D8Command
+import com.android.tools.r8.OutputMode
+import com.android.tools.r8.utils.ArchiveResourceProvider
 import kotlinx.validation.BinaryCompatibilityValidatorPlugin
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
@@ -12,7 +18,6 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.support.listFilesOrdered
 import org.gradle.plugins.signing.SigningExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
@@ -95,39 +100,38 @@ abstract class PatchesPlugin : Plugin<Project> {
 
         extensions.configure<SigningExtension>("signing") {
             it.useGpgCmd()
-            extensions.getByType(PublishingExtension::class.java).publications.named {
-                it == "revanced-patches-publication"
-            }.configureEach(it::sign)
+            extensions.getByType(PublishingExtension::class.java).publications
+                .named("ReVancedPatches").configure(it::sign)
         }
     }
 
     /**
-     * Adds a task to build the DEX file of the patches and add it to the patches file to use on Android,
+     * Adds a task to build the DEX file of the patches and adds it to the patches file to use on Android,
      * adds the publishing plugin to the project to publish the patches API and
      * configures the publication with the "about" information from the extension.
      */
     private fun Project.configurePublishing(patchesExtension: PatchesExtension) {
-        tasks.register("buildDexJar") {
-            it.description = "Build and add a DEX to the JAR file"
-            it.group = "build"
+        val buildAndroid = tasks.register("buildAndroid") { task ->
+            task.description = "Builds the project for Android by compiling to DEX and adding it to the patches file."
+            task.group = "build"
 
-            it.dependsOn(tasks["build"])
+            task.dependsOn(tasks["jar"])
 
-            it.doLast {
-                val d8 = File(System.getenv("ANDROID_HOME")).resolve("build-tools")
-                    .listFilesOrdered().last().resolve("d8").absolutePath
+            task.doLast {
+                val workingDirectory = layout.buildDirectory.dir("revanced").get().asFile.also(File::mkdirs)
 
-                val patchesJar = configurations["archives"].allArtifacts.files.files.first().absolutePath
-                val workingDirectory = layout.buildDirectory.dir("libs").get().asFile
+                val patchesFile = tasks["jar"].outputs.files.first()
+                val classesZipFile = workingDirectory.resolve("classes.zip")
 
-                exec { execSpec ->
-                    execSpec.workingDir = workingDirectory
-                    execSpec.commandLine = listOf(d8, "--release", patchesJar)
-                }
+                D8Command.builder()
+                    .addProgramResourceProvider(ArchiveResourceProvider.fromArchive(patchesFile.toPath(), true))
+                    .setMode(CompilationMode.RELEASE)
+                    .setOutput(classesZipFile.toPath(), OutputMode.DexIndexed)
+                    .build()
+                    .let(D8::run)
 
-                exec { execSpec ->
-                    execSpec.workingDir = workingDirectory
-                    execSpec.commandLine = listOf("zip", "-u", patchesJar, "classes.dex")
+                ZFile.openReadWrite(patchesFile).use { zFile ->
+                    zFile.mergeFrom(ZFile.openReadOnly(classesZipFile)) { false }
                 }
             }
         }
@@ -135,8 +139,14 @@ abstract class PatchesPlugin : Plugin<Project> {
         pluginManager.apply("maven-publish")
 
         extensions.configure(PublishingExtension::class.java) { extension ->
+            // Necessary for the signing plugin for a publication to be created
+            // and the signing plugin to sign the publication, when no repositories are defined.
+            extension.repositories.mavenLocal {
+                it.name = "DummyMavenLocal"
+            }
+
             extension.publications { container ->
-                container.create("revanced-patches-publication", MavenPublication::class.java) {
+                container.create("ReVancedPatches", MavenPublication::class.java) {
                     it.from(components["java"])
 
                     val about = patchesExtension.about
@@ -167,7 +177,7 @@ abstract class PatchesPlugin : Plugin<Project> {
         // Used by gradle-semantic-release-plugin.
         // Tracking: https://github.com/KengoTODA/gradle-semantic-release-plugin/issues/435
         tasks["publish"].apply {
-            dependsOn("buildDexJar")
+            dependsOn(buildAndroid)
         }
     }
 
@@ -176,13 +186,13 @@ abstract class PatchesPlugin : Plugin<Project> {
      */
     private fun Project.configureConsumeExtensions(patchesExtension: PatchesExtension) {
         val extensionsProject = try {
-            project(patchesExtension.extensionsProjectPath.get())
+            project(patchesExtension.extensionsProjectPath ?: return)
         } catch (e: UnknownProjectException) {
             return
         }
 
-        val extensionProjects = extensionsProject.subprojects.filter {
-            it.parent == extensionsProject
+        val extensionProjects = extensionsProject.subprojects.filter { extensionProject ->
+            extensionProject.plugins.hasPlugin(ExtensionPlugin::class.java)
         }
 
         val extensionsDependencyScopeConfiguration =
@@ -222,8 +232,8 @@ private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
         it.manifest.apply {
             attributes["Name"] = patchesExtension.about.name
             attributes["Description"] = patchesExtension.about.description
-            attributes["Version"] = patchesExtension.about.version
-            attributes["Timestamp"] = patchesExtension.about.timestamp
+            attributes["Version"] = project.version.toString()
+            attributes["Timestamp"] = System.currentTimeMillis().toString()
             attributes["Source"] = patchesExtension.about.source
             attributes["Author"] = patchesExtension.about.author
             attributes["Contact"] = patchesExtension.about.contact
@@ -232,4 +242,3 @@ private fun Project.configureJarTask(patchesExtension: PatchesExtension) {
         }
     }
 }
-

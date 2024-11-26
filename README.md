@@ -71,12 +71,12 @@ ReVanced Patches Gradle plugin configures a project to develop ReVanced Patches.
 
 For that, the plugin provides:
 
-- The [settings plugin](plugin/src/main/kotlin/app/revanced/patches/gradle/SettingsPlugin.kt):
-Applied to the `settings.gradle.kts` file, configures the project repositories and subprojects
-- The [patches plugin](plugin/src/main/kotlin/app/revanced/patches/gradle/PatchesPlugin.kt):
-Applied to the patches subproject by the settings plugin
-- The [extension plugin](plugin/src/main/kotlin/app/revanced/patches/gradle/ExtensionPlugin.kt):
-Applied to extension subprojects by the settings plugin
+- The [settings plugin](src/main/kotlin/app/revanced/patches/gradle/SettingsPlugin.kt):
+  Applied to the `settings.gradle.kts` file, configures the project repositories and subprojects
+- The [patches plugin](src/main/kotlin/app/revanced/patches/gradle/PatchesPlugin.kt):
+  Applied to the patches subproject by the settings plugin
+- The [extension plugin](src/main/kotlin/app/revanced/patches/gradle/ExtensionPlugin.kt):
+  Applied to extension subprojects by the settings plugin
 
 > [!CAUTION]
 > This plugin is not stable yet and likely to change due to lacking experience with Gradle plugins.  
@@ -97,18 +97,36 @@ pluginManagement {
         gradlePluginPortal()
         google()
         maven {
-           name = "GitHubPackages"
-           url = uri("https://maven.pkg.github.com/revanced/registry")
-           credentials {
-              username = providers.gradleProperty("gpr.user")
-              password = providers.gradleProperty("gpr.key")
-           }
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/revanced/registry")
+            credentials {
+                username = providers.gradleProperty("gpr.user")
+                password = providers.gradleProperty("gpr.key")
+            }
         }
     }
 }
 
 plugins {
-   id("app.revanced.patches") version "<version>"
+    id("app.revanced.patches") version "<version>"
+}
+
+// This block is optional and can be used to configure the patches and extension projects.
+settings {
+    // "patches" is the default.
+    patchesProjectPath = "patches"
+
+    extensions {
+        // The path containing the extension projects. "extensions" is the default.
+        projectsPath = "extensions"
+
+        // A default namespace for extension projects. null is the default.
+        defaultNamespace = "app.revanced.extension"
+
+        // Proguard files relative to the extension project.
+        // By default, isMinifyEnabled is false, unless a ProGuard file is added.
+        proguardFiles("../proguard-rules.pro")
+    }
 }
 ```
 
@@ -132,15 +150,15 @@ patches {
 > [!NOTE]
 > By default, the plugin expects the patches project to be in the `patches` directory.
 
-Create the extension project and configure the `build.gradle.kts` file:
+Create the extension project and add an empty `build.gradle.kts` file.
+Unless the `build.gradle.kts` file is empty, the plugin will not recognize the extension project.
+By default, the extension name will be inferred from the relative path to the extension project.
+For example, the extension name for the `extensions/extension` project will be `extensions/extension.rve`.
+To set an extension name explicitly, add the following to the `build.gradle.kts` file:
 
 ```kotlin
 extension {
-   name = "extensions/extension.rve"
-}
-
-android {
-   namespace = "app.revanced.extension"
+    name = "extensions/extension.rve"
 }
 ```
 
@@ -162,7 +180,9 @@ To build ReVanced Patches Gradle plugin, follow these steps:
 ## 📜 Licence
 
 ReVanced Patches Gradle plugin is licensed under the GPLv3 license.
-Please see the [license file](LICENSE) for more information. [tl;dr](https://www.tldrlegal.com/license/gnu-general-public-license-v3-gpl-3) you may copy, distribute and modify
+Please see the [license file](LICENSE) for more
+information. [tl;dr](https://www.tldrlegal.com/license/gnu-general-public-license-v3-gpl-3) you may copy, distribute and
+modify
 ReVanced Patches Gradle plugin as long as you track changes/dates in source files.
 Any modifications to ReVanced Patches Gradle plugin must also be made available under the GPL,
 along with build & install instructions.

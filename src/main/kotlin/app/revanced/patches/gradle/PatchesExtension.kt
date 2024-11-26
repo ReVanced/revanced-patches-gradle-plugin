@@ -1,12 +1,6 @@
 package app.revanced.patches.gradle
 
-import org.gradle.api.Project
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
-import javax.inject.Inject
-
-@Suppress("unused")
-abstract class PatchesExtension @Inject constructor(objectFactory: ObjectFactory) {
+open class PatchesExtension {
     /**
      * The path to the extensions project relative to the root project.
      *
@@ -14,16 +8,15 @@ abstract class PatchesExtension @Inject constructor(objectFactory: ObjectFactory
      *
      * Defaults to `:extensions`.
      */
-    abstract val extensionsProjectPath: Property<String>
+    var extensionsProjectPath: String? = ":extensions"
 
-    internal val about = objectFactory.newInstance(About::class.java)
+    /**
+     * About information for the project.
+     */
+    val about = About()
 
     fun about(block: About.() -> Unit) {
         about.block()
-    }
-
-    init {
-        extensionsProjectPath.convention(":extensions")
     }
 
     /**
@@ -31,20 +24,13 @@ abstract class PatchesExtension @Inject constructor(objectFactory: ObjectFactory
      *
      * Used by the patches plugin to create the manifest file and set up the publication of the patches project.
      */
-    abstract class About @Inject constructor(project: Project) {
-        abstract val name: Property<String>
-        abstract val description: Property<String>
-        abstract val source: Property<String>
-        abstract val author: Property<String>
-        abstract val contact: Property<String>
-        abstract val website: Property<String>
-        abstract val license: Property<String>
-        internal abstract val version: Property<String>
-        internal abstract val timestamp: Property<Long>
-
-        init {
-            version.convention(project.version.toString())
-            timestamp.convention(System.currentTimeMillis())
-        }
+    class About {
+        var name: String? = null
+        var description: String? = null
+        var source: String? = null
+        var author: String? = null
+        var contact: String? = null
+        var website: String? = null
+        var license: String? = null
     }
 }
