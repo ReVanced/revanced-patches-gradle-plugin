@@ -1,6 +1,7 @@
-public abstract class app/revanced/patches/gradle/ExtensionExtension {
+public class app/revanced/patches/gradle/ExtensionExtension {
 	public fun <init> ()V
-	public abstract fun getName ()Lorg/gradle/api/provider/Property;
+	public final fun getName ()Ljava/lang/String;
+	public final fun setName (Ljava/lang/String;)V
 }
 
 public abstract class app/revanced/patches/gradle/ExtensionPlugin : org/gradle/api/Plugin {
@@ -9,21 +10,35 @@ public abstract class app/revanced/patches/gradle/ExtensionPlugin : org/gradle/a
 	public fun apply (Lorg/gradle/api/Project;)V
 }
 
-public abstract class app/revanced/patches/gradle/PatchesExtension {
-	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
-	public final fun about (Lkotlin/jvm/functions/Function1;)V
-	public abstract fun getExtensionsProjectPath ()Lorg/gradle/api/provider/Property;
+public final class app/revanced/patches/gradle/ExtensionPlugin$inlined$sam$i$org_gradle_api_Action$0 : org/gradle/api/Action {
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public final synthetic fun execute (Ljava/lang/Object;)V
 }
 
-public abstract class app/revanced/patches/gradle/PatchesExtension$About {
-	public fun <init> (Lorg/gradle/api/Project;)V
-	public abstract fun getAuthor ()Lorg/gradle/api/provider/Property;
-	public abstract fun getContact ()Lorg/gradle/api/provider/Property;
-	public abstract fun getDescription ()Lorg/gradle/api/provider/Property;
-	public abstract fun getLicense ()Lorg/gradle/api/provider/Property;
-	public abstract fun getName ()Lorg/gradle/api/provider/Property;
-	public abstract fun getSource ()Lorg/gradle/api/provider/Property;
-	public abstract fun getWebsite ()Lorg/gradle/api/provider/Property;
+public class app/revanced/patches/gradle/PatchesExtension {
+	public fun <init> ()V
+	public final fun about (Lkotlin/jvm/functions/Function1;)V
+	public final fun getAbout ()Lapp/revanced/patches/gradle/PatchesExtension$About;
+	public final fun getExtensionsProjectPath ()Ljava/lang/String;
+	public final fun setExtensionsProjectPath (Ljava/lang/String;)V
+}
+
+public final class app/revanced/patches/gradle/PatchesExtension$About {
+	public fun <init> ()V
+	public final fun getAuthor ()Ljava/lang/String;
+	public final fun getContact ()Ljava/lang/String;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getLicense ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSource ()Ljava/lang/String;
+	public final fun getWebsite ()Ljava/lang/String;
+	public final fun setAuthor (Ljava/lang/String;)V
+	public final fun setContact (Ljava/lang/String;)V
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setLicense (Ljava/lang/String;)V
+	public final fun setName (Ljava/lang/String;)V
+	public final fun setSource (Ljava/lang/String;)V
+	public final fun setWebsite (Ljava/lang/String;)V
 }
 
 public abstract class app/revanced/patches/gradle/PatchesPlugin : org/gradle/api/Plugin {
@@ -32,10 +47,32 @@ public abstract class app/revanced/patches/gradle/PatchesPlugin : org/gradle/api
 	public fun apply (Lorg/gradle/api/Project;)V
 }
 
-public abstract class app/revanced/patches/gradle/SettingsExtension {
+public class app/revanced/patches/gradle/SettingsExtension {
 	public fun <init> ()V
-	public abstract fun getExtensionsProjectPath ()Lorg/gradle/api/provider/Property;
-	public abstract fun getPatchesProjectPath ()Lorg/gradle/api/provider/Property;
+	public final fun extensions (Lkotlin/jvm/functions/Function1;)V
+	public final fun getExtensionsExtension ()Lapp/revanced/patches/gradle/SettingsExtension$ExtensionsExtension;
+	public final fun getPatchesProjectPath ()Ljava/lang/String;
+	public final fun setPatchesProjectPath (Ljava/lang/String;)V
+}
+
+public final class app/revanced/patches/gradle/SettingsExtension$ExtensionsExtension {
+	public fun <init> ()V
+	public final fun getDefaultNamespace ()Ljava/lang/String;
+	public final fun getProjectsPath ()Ljava/lang/String;
+	public final fun proguardFiles ([Ljava/lang/String;)V
+	public final fun setDefaultNamespace (Ljava/lang/String;)V
+	public final fun setProjectsPath (Ljava/lang/String;)V
+}
+
+public abstract class app/revanced/patches/gradle/SettingsExtensionProvider : org/gradle/api/services/BuildService, org/gradle/api/services/BuildServiceParameters {
+	public fun <init> ()V
+}
+
+public abstract interface class app/revanced/patches/gradle/SettingsExtensionProvider$Params : org/gradle/api/services/BuildServiceParameters {
+	public abstract fun getDefaultNamespace ()Ljava/lang/String;
+	public abstract fun getProguardFiles ()Ljava/util/Set;
+	public abstract fun setDefaultNamespace (Ljava/lang/String;)V
+	public abstract fun setProguardFiles (Ljava/util/Set;)V
 }
 
 public abstract class app/revanced/patches/gradle/SettingsPlugin : org/gradle/api/Plugin {
