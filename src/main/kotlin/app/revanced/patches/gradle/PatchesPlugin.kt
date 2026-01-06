@@ -54,7 +54,7 @@ abstract class PatchesPlugin : Plugin<Project> {
                 },
             )
 
-            "app.revanced:revanced-patcher"("revanced-patcher")
+            "app.revanced:patcher"("revanced-patcher")
             "com.android.tools.smali:smali"("smali")
         }
     }
