@@ -58,7 +58,7 @@ gradlePlugin {
 publishing {
     repositories {
         maven {
-            name = "GitHubPackages"
+            name = "githubPackages"
             url = uri("https://maven.pkg.github.com/revanced/revanced-patches-gradle-plugin")
             credentials(PasswordCredentials::class)
         }
