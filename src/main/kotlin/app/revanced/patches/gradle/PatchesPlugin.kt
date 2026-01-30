@@ -31,7 +31,6 @@ abstract class PatchesPlugin : Plugin<Project> {
 
         project.configureDependencies()
         project.configureKotlin()
-        project.configureJava()
         project.configureBinaryCompatibilityValidator()
         project.configureConsumeExtensions(extension)
         project.configureJarTask(extension)
@@ -67,7 +66,7 @@ abstract class PatchesPlugin : Plugin<Project> {
 
         extensions.configure<KotlinJvmProjectExtension>("kotlin") {
             it.compilerOptions {
-                jvmTarget.set(JvmTarget.JVM_11)
+                jvmTarget.set(JvmTarget.JVM_17)
             }
         }
     }
@@ -78,7 +77,7 @@ abstract class PatchesPlugin : Plugin<Project> {
      */
     private fun Project.configureJava() {
         extensions.configure<JavaPluginExtension>("java") {
-            it.targetCompatibility = JavaVersion.VERSION_11
+            it.targetCompatibility = JavaVersion.VERSION_17
 
             it.withSourcesJar()
             it.withJavadocJar()
@@ -127,6 +126,7 @@ abstract class PatchesPlugin : Plugin<Project> {
                     .addProgramResourceProvider(ArchiveResourceProvider.fromArchive(patchesFile.toPath(), true))
                     .setMode(CompilationMode.RELEASE)
                     .setOutput(classesZipFile.toPath(), OutputMode.DexIndexed)
+                    .setMinApiLevel(27)
                     .build()
                     .let(D8::run)
 
