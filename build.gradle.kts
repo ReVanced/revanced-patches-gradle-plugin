@@ -9,10 +9,6 @@ plugins {
 }
 
 group = "app.revanced"
-repositories {
-    mavenCentral()
-    google()
-}
 
 dependencies {
     implementation(libs.android.application)
