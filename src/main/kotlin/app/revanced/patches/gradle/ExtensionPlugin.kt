@@ -75,7 +75,7 @@ abstract class ExtensionPlugin : Plugin<Project> {
                 namespace = settingsExtensionProvider.parameters.defaultNamespace
 
                 defaultConfig {
-                    minSdk = 23
+                    minSdk = 1
                     multiDexEnabled = false
                 }
 
