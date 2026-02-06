@@ -6,36 +6,35 @@ import com.android.tools.r8.D8
 import com.android.tools.r8.D8Command
 import com.android.tools.r8.OutputMode
 import com.android.tools.r8.utils.ArchiveResourceProvider
-import kotlinx.validation.BinaryCompatibilityValidatorPlugin
-import org.gradle.api.JavaVersion
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
+import com.vanniktech.maven.publish.MavenPublishPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.getByType
 import org.gradle.plugins.signing.SigningExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationExtension
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import java.io.File
+import kotlin.collections.addAll
 
-@Suppress("unused")
 abstract class PatchesPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create("patches", PatchesExtension::class.java)
 
         project.configureDependencies()
         project.configureKotlin()
-        project.configureBinaryCompatibilityValidator()
         project.configureConsumeExtensions(extension)
         project.configureJarTask(extension)
         project.configurePublishing(extension)
-        project.configureSigning()
     }
 
     /**
@@ -59,48 +58,25 @@ abstract class PatchesPlugin : Plugin<Project> {
     }
 
     /**
-     * Configures the Kotlin plugin with JVM 11 as the target because JVM 11 is the target on Android.
+     * Configures the Kotlin plugin with JVM 11 as the target because JVM 17 is the target on Android.
      */
+    @OptIn(ExperimentalAbiValidation::class)
     private fun Project.configureKotlin() {
         pluginManager.apply(KotlinPluginWrapper::class.java)
 
         extensions.configure<KotlinJvmProjectExtension>("kotlin") {
+            it.extensions.configure<AbiValidationExtension>("abiValidation") { extension ->
+                extension.enabled.set(true)
+            }
+
             it.compilerOptions {
+                freeCompilerArgs.addAll(
+                    "-Xexplicit-backing-fields",
+                    "-Xcontext-parameters"
+                )
+
                 jvmTarget.set(JvmTarget.JVM_17)
             }
-        }
-    }
-
-    /**
-     * Configures the Java plugin with Java 11 as the target because Java 11 is the target on Android.
-     * Additionally, adds sources and javadoc JARs, as patches have a public API.
-     */
-    private fun Project.configureJava() {
-        extensions.configure<JavaPluginExtension>("java") {
-            it.targetCompatibility = JavaVersion.VERSION_17
-
-            it.withSourcesJar()
-            it.withJavadocJar()
-        }
-    }
-
-    /**
-     * Applies the binary compatibility validator plugin to the project, because patches have a public API.
-     */
-    private fun Project.configureBinaryCompatibilityValidator() {
-        pluginManager.apply(BinaryCompatibilityValidatorPlugin::class.java)
-    }
-
-    /**
-     * Configures the signing plugin to sign the patches publication.
-     */
-    private fun Project.configureSigning() {
-        pluginManager.apply("signing")
-
-        extensions.configure<SigningExtension>("signing") {
-            it.useGpgCmd()
-            extensions.getByType(PublishingExtension::class.java).publications
-                .named("ReVancedPatches").configure(it::sign)
         }
     }
 
@@ -136,42 +112,44 @@ abstract class PatchesPlugin : Plugin<Project> {
             }
         }
 
-        pluginManager.apply("maven-publish")
+        pluginManager.apply(MavenPublishPlugin::class.java)
 
-        extensions.configure(PublishingExtension::class.java) { extension ->
-            // Necessary for the signing plugin for a publication to be created
-            // and the signing plugin to sign the publication, when no repositories are defined.
-            extension.repositories.mavenLocal {
-                it.name = "DummyMavenLocal"
-            }
-
-            extension.publications { container ->
-                container.create("ReVancedPatches", MavenPublication::class.java) {
-                    it.from(components["java"])
-
-                    val about = patchesExtension.about
-                    it.pom { pom ->
-                        pom.name.set(about.name)
-                        pom.description.set(about.description)
-                        pom.url.set(about.website)
-
-                        pom.licenses { licenses ->
-                            licenses.license { license ->
-                                license.name.set(about.license)
-                            }
-                        }
-                        pom.developers { developers ->
-                            developers.developer { developer ->
-                                developer.name.set(about.author)
-                                developer.email.set(about.contact)
-                            }
-                        }
-                        pom.scm { scm ->
-                            scm.url.set(about.source)
-                        }
-                    }
+        extensions.configure<MavenPublishBaseExtension>("mavenPublishing") { extension ->
+            extensions.configure<PublishingExtension>("publishing") { publishingExtension ->
+                // Necessary for the signing plugin for a publication to be created
+                // and the signing plugin to sign the publication, when no repositories are defined.
+                publishingExtension.repositories.mavenLocal {
+                    it.name = "DummyMavenLocal"
                 }
             }
+
+            extension.signAllPublications()
+            extensions.getByType<SigningExtension>().useGpgCmd()
+
+            extension.pom { pom ->
+                val about = patchesExtension.about
+
+                pom.name.set(about.name)
+                pom.description.set(about.description)
+                pom.url.set(about.website)
+
+                pom.licenses { licenses ->
+                    licenses.license { license ->
+                        license.name.set(about.license)
+                    }
+                }
+                pom.developers { developers ->
+                    developers.developer { developer ->
+                        developer.name.set(about.author)
+                        developer.email.set(about.contact)
+                    }
+                }
+                pom.scm { scm ->
+                    scm.url.set(about.source)
+                }
+            }
+
+            extension.coordinates(group.toString(), project.name, version.toString())
         }
 
         // Used by gradle-semantic-release-plugin.
@@ -187,7 +165,7 @@ abstract class PatchesPlugin : Plugin<Project> {
     private fun Project.configureConsumeExtensions(patchesExtension: PatchesExtension) {
         val extensionsProject = try {
             project(patchesExtension.extensionsProjectPath ?: return)
-        } catch (e: UnknownProjectException) {
+        } catch (_: UnknownProjectException) {
             return
         }
 

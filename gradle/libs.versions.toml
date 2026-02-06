@@ -1,18 +1,18 @@
 [versions]
 kotlin = "2.3.0"
 pluginPublish = "1.2.1"
-binary-compatibility-validator = "0.18.1"
 #noinspection GradleDependency
-agp = "8.2.2" # 8.3.0 causes Java verifier error: https://github.com/ReVanced/revanced-patches/issues/2818
+agp = "9.0.0"
 guava = "33.5.0-jre"
+vanniktechMavenPublish = "0.35.0"
 
 [libraries]
-binary-compatibility-validator = { module = "org.jetbrains.kotlinx.binary-compatibility-validator:org.jetbrains.kotlinx.binary-compatibility-validator.gradle.plugin", version.ref = "binary-compatibility-validator" }
 kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-android = { module = "org.jetbrains.kotlin.android:org.jetbrains.kotlin.android.gradle.plugin", version.ref = "kotlin" }
 android-application = { module = "com.android.application:com.android.application.gradle.plugin", version.ref = "agp" }
+vanniktech-mavenPublish = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "vanniktechMavenPublish" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin"}
-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-compatibility-validator" }
+vanniktech-mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktechMavenPublish" }
