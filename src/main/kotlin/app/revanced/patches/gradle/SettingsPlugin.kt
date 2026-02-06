@@ -2,6 +2,7 @@ package app.revanced.patches.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.UnknownProjectException
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.api.initialization.Settings
 import org.gradle.api.model.ObjectFactory
 import java.net.URI
@@ -41,10 +42,7 @@ abstract class SettingsPlugin @Inject constructor(
             maven { repository ->
                 // A repository must be specified. "registry" is a dummy.
                 repository.url = URI("https://maven.pkg.github.com/revanced/registry")
-                repository.credentials {
-                    it.username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
-                    it.password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
-                }
+                repository.credentials(PasswordCredentials::class.java)
             }
         }
     }
