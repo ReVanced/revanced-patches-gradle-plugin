@@ -1,15 +1,14 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+@file:OptIn(ExperimentalAbiValidation::class)
+
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
     alias(libs.plugins.kotlin)
-    alias(libs.plugins.binary.compatibility.validator)
+    alias(libs.plugins.vanniktech.mavenPublish)
     `java-gradle-plugin`
-    `maven-publish`
-    signing
 }
 
 group = "app.revanced"
-
 repositories {
     mavenCentral()
     google()
@@ -17,24 +16,20 @@ repositories {
 
 dependencies {
     implementation(libs.android.application)
-    implementation(libs.binary.compatibility.validator)
     implementation(libs.guava)
     implementation(libs.kotlin)
     implementation(libs.kotlin.android)
+    implementation(libs.vanniktech.mavenPublish)
 
     implementation(gradleApi())
     implementation(gradleKotlinDsl())
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-
-    withSourcesJar()
-    withJavadocJar()
-}
-
 kotlin {
+    abiValidation {
+        enabled = true
+    }
+
     compilerOptions {
         jvmToolchain(17)
     }
@@ -55,19 +50,19 @@ gradlePlugin {
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "gitHubPackages"
-            url = uri("https://maven.pkg.github.com/revanced/revanced-patches-gradle-plugin")
-
-            credentials(PasswordCredentials::class)
+mavenPublishing {
+    publishing {
+        repositories {
+            maven {
+                name = "githubPackages"
+                url = uri("https://maven.pkg.github.com/revanced/revanced-patches-gradle-plugin")
+                credentials(PasswordCredentials::class)
+            }
         }
     }
-}
 
-signing {
-    useGpgCmd()
+    signAllPublications()
+    extensions.getByType<SigningExtension>().useGpgCmd()
 
-    sign(publishing.publications)
+    coordinates(group.toString(), project.name, version.toString())
 }
