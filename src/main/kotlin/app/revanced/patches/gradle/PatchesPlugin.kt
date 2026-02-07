@@ -8,10 +8,12 @@ import com.android.tools.r8.OutputMode
 import com.android.tools.r8.utils.ArchiveResourceProvider
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import com.vanniktech.maven.publish.MavenPublishPlugin
+import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.jvm.tasks.Jar
@@ -24,17 +26,26 @@ import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationExtension
 import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import java.io.File
-import kotlin.collections.addAll
 
 abstract class PatchesPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create("patches", PatchesExtension::class.java)
 
-        project.configureDependencies()
+        project.applyPlugins()
+        project.configureJava()
         project.configureKotlin()
+        project.configureDependencies()
         project.configureConsumeExtensions(extension)
         project.configureJarTask(extension)
         project.configurePublishing(extension)
+
+    }
+
+    private fun Project.applyPlugins() {
+        pluginManager.apply {
+            apply(KotlinPluginWrapper::class.java)
+            apply(MavenPublishPlugin::class.java)
+        }
     }
 
     /**
@@ -58,12 +69,21 @@ abstract class PatchesPlugin : Plugin<Project> {
     }
 
     /**
-     * Configures the Kotlin plugin with JVM 11 as the target because JVM 17 is the target on Android.
+     * Configures the Java plugin with Java 17 as the target because Java 17 is the target on Android.
+     * Additionally, adds sources and javadoc JARs, as patches have a public API.
+     */
+    private fun Project.configureJava() {
+        extensions.configure<JavaPluginExtension>("java") {
+            it.targetCompatibility = JavaVersion.VERSION_17
+        }
+    }
+
+
+    /**
+     * Configures the Kotlin plugin with JVM 17 as the target because JVM 17 is the target on Android.
      */
     @OptIn(ExperimentalAbiValidation::class)
     private fun Project.configureKotlin() {
-        pluginManager.apply(KotlinPluginWrapper::class.java)
-
         extensions.configure<KotlinJvmProjectExtension>("kotlin") {
             it.extensions.configure<AbiValidationExtension>("abiValidation") { extension ->
                 extension.enabled.set(true)
@@ -87,19 +107,26 @@ abstract class PatchesPlugin : Plugin<Project> {
      */
     private fun Project.configurePublishing(patchesExtension: PatchesExtension) {
         val buildAndroid = tasks.register("buildAndroid") { task ->
-            task.description = "Builds the project for Android by compiling to DEX and adding it to the patches file."
+            task.description =
+                "Builds the project for Android by compiling to DEX and adding it to the patches file."
             task.group = "build"
 
             task.dependsOn(tasks["jar"])
 
             task.doLast {
-                val workingDirectory = layout.buildDirectory.dir("revanced").get().asFile.also(File::mkdirs)
+                val workingDirectory =
+                    layout.buildDirectory.dir("revanced").get().asFile.also(File::mkdirs)
 
                 val patchesFile = tasks["jar"].outputs.files.first()
                 val classesZipFile = workingDirectory.resolve("classes.zip")
 
                 D8Command.builder()
-                    .addProgramResourceProvider(ArchiveResourceProvider.fromArchive(patchesFile.toPath(), true))
+                    .addProgramResourceProvider(
+                        ArchiveResourceProvider.fromArchive(
+                            patchesFile.toPath(),
+                            true
+                        )
+                    )
                     .setMode(CompilationMode.RELEASE)
                     .setOutput(classesZipFile.toPath(), OutputMode.DexIndexed)
                     .setMinApiLevel(27)
@@ -111,8 +138,6 @@ abstract class PatchesPlugin : Plugin<Project> {
                 }
             }
         }
-
-        pluginManager.apply(MavenPublishPlugin::class.java)
 
         extensions.configure<MavenPublishBaseExtension>("mavenPublishing") { extension ->
             extensions.configure<PublishingExtension>("publishing") { publishingExtension ->

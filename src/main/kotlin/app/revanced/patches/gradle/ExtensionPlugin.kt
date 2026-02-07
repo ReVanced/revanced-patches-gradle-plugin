@@ -29,11 +29,12 @@ abstract class ExtensionPlugin : Plugin<Project> {
     private fun Project.configureArtifactSharing(extension: ExtensionExtension) {
         val androidExtension = extensions.getByType<ApplicationExtension>()
         val syncExtensionTask = tasks.register<Sync>("syncExtension") {
-            val dexTaskName = if (androidExtension.buildTypes.getByName("release").isMinifyEnabled) {
-                "minifyReleaseWithR8"
-            } else {
-                "mergeDexRelease"
-            }
+            val dexTaskName =
+                if (androidExtension.buildTypes.getByName("release").isMinifyEnabled) {
+                    "minifyReleaseWithR8"
+                } else {
+                    "mergeDexRelease"
+                }
 
             val dexTask = tasks.getByName(dexTaskName)
 
@@ -75,13 +76,13 @@ abstract class ExtensionPlugin : Plugin<Project> {
                 namespace = settingsExtensionProvider.parameters.defaultNamespace
 
                 defaultConfig {
-                    minSdk = 1
                     multiDexEnabled = false
                 }
 
                 buildTypes {
                     release {
-                        isMinifyEnabled = settingsExtensionProvider.parameters.proguardFiles.isNotEmpty()
+                        isMinifyEnabled =
+                            settingsExtensionProvider.parameters.proguardFiles.isNotEmpty()
 
                         proguardFiles(
                             getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -94,7 +95,7 @@ abstract class ExtensionPlugin : Plugin<Project> {
                     sourceCompatibility = JavaVersion.VERSION_17
                     targetCompatibility = JavaVersion.VERSION_17
                 }
-             }
+            }
         }
     }
 }

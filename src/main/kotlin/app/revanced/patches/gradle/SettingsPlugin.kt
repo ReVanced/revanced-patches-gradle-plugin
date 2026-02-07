@@ -13,6 +13,8 @@ abstract class SettingsPlugin @Inject constructor(
     private val objectFactory: ObjectFactory,
 ) : Plugin<Settings> {
     override fun apply(settings: Settings) {
+        settings.configureDependencies()
+
         val extension = settings.extensions.create("settings", SettingsExtension::class.java)
 
         settings.gradle.settingsEvaluated {
@@ -27,7 +29,6 @@ abstract class SettingsPlugin @Inject constructor(
             }
         }
 
-        settings.configureDependencies()
         settings.configureProjects(extension)
     }
 
@@ -40,8 +41,9 @@ abstract class SettingsPlugin @Inject constructor(
             mavenCentral()
             google()
             maven { repository ->
-                // A repository must be specified. "registry" is a dummy.
-                repository.url = URI("https://maven.pkg.github.com/revanced/registry")
+                repository.name = "githubPackages"
+                // A repository must be specified. "revanced" is a dummy.
+                repository.url = URI("https://maven.pkg.github.com/revanced/revanced")
                 repository.credentials(PasswordCredentials::class.java)
             }
         }
