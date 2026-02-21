@@ -1,42 +1,33 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+@file:OptIn(ExperimentalAbiValidation::class)
+
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
     alias(libs.plugins.kotlin)
-    alias(libs.plugins.binary.compatibility.validator)
+    alias(libs.plugins.vanniktech.mavenPublish)
     `java-gradle-plugin`
-    `maven-publish`
-    signing
 }
 
 group = "app.revanced"
 
-repositories {
-    mavenCentral()
-    google()
-}
-
 dependencies {
     implementation(libs.android.application)
-    implementation(libs.binary.compatibility.validator)
     implementation(libs.guava)
     implementation(libs.kotlin)
     implementation(libs.kotlin.android)
+    implementation(libs.vanniktech.mavenPublish)
 
     implementation(gradleApi())
     implementation(gradleKotlinDsl())
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-
-    withSourcesJar()
-    withJavadocJar()
-}
-
 kotlin {
+    abiValidation {
+        enabled = true
+    }
+
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_11)
+        jvmToolchain(17)
     }
 }
 
@@ -55,21 +46,19 @@ gradlePlugin {
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/revanced/revanced-patches-gradle-plugin")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+mavenPublishing {
+    publishing {
+        repositories {
+            maven {
+                name = "githubPackages"
+                url = uri("https://maven.pkg.github.com/revanced/revanced-patches-gradle-plugin")
+                credentials(PasswordCredentials::class)
             }
         }
     }
-}
 
-signing {
-    useGpgCmd()
+    signAllPublications()
+    extensions.getByType<SigningExtension>().useGpgCmd()
 
-    sign(publishing.publications)
+    coordinates(group.toString(), project.name, version.toString())
 }

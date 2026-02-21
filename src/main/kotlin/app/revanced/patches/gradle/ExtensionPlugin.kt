@@ -1,16 +1,13 @@
 package app.revanced.patches.gradle
 
+import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.gradle.AppPlugin
-import com.android.build.gradle.internal.dsl.BaseAppModuleExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.Sync
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
-import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 import kotlin.io.path.Path
 import kotlin.io.path.pathString
 
@@ -30,13 +27,14 @@ abstract class ExtensionPlugin : Plugin<Project> {
      * Setup sharing the extension dex file with the consuming patches project.
      */
     private fun Project.configureArtifactSharing(extension: ExtensionExtension) {
-        val androidExtension = extensions.getByType<BaseAppModuleExtension>()
+        val androidExtension = extensions.getByType<ApplicationExtension>()
         val syncExtensionTask = tasks.register<Sync>("syncExtension") {
-            val dexTaskName = if (androidExtension.buildTypes.getByName("release").isMinifyEnabled) {
-                "minifyReleaseWithR8"
-            } else {
-                "mergeDexRelease"
-            }
+            val dexTaskName =
+                if (androidExtension.buildTypes.getByName("release").isMinifyEnabled) {
+                    "minifyReleaseWithR8"
+                } else {
+                    "mergeDexRelease"
+                }
 
             val dexTask = tasks.getByName(dexTaskName)
 
@@ -70,22 +68,21 @@ abstract class ExtensionPlugin : Plugin<Project> {
     private fun Project.configureAndroid(settingsExtensionProvider: SettingsExtensionProvider) {
         pluginManager.apply {
             apply(AppPlugin::class.java)
-            apply(KotlinAndroidPluginWrapper::class.java)
         }
 
-        extensions.configure(BaseAppModuleExtension::class.java) {
+        extensions.configure(ApplicationExtension::class.java) {
             it.apply {
                 compileSdk = 34
                 namespace = settingsExtensionProvider.parameters.defaultNamespace
 
                 defaultConfig {
-                    minSdk = 23
                     multiDexEnabled = false
                 }
 
                 buildTypes {
                     release {
-                        isMinifyEnabled = settingsExtensionProvider.parameters.proguardFiles.isNotEmpty()
+                        isMinifyEnabled =
+                            settingsExtensionProvider.parameters.proguardFiles.isNotEmpty()
 
                         proguardFiles(
                             getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -97,11 +94,6 @@ abstract class ExtensionPlugin : Plugin<Project> {
                 compileOptions {
                     sourceCompatibility = JavaVersion.VERSION_17
                     targetCompatibility = JavaVersion.VERSION_17
-                }
-
-                this as ExtensionAware
-                this.extensions.configure<KotlinJvmOptions>("kotlinOptions") { options ->
-                    options.jvmTarget = JavaVersion.VERSION_17.toString()
                 }
             }
         }

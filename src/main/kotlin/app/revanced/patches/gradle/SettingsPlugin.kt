@@ -2,6 +2,7 @@ package app.revanced.patches.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.UnknownProjectException
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.api.initialization.Settings
 import org.gradle.api.model.ObjectFactory
 import java.net.URI
@@ -12,6 +13,8 @@ abstract class SettingsPlugin @Inject constructor(
     private val objectFactory: ObjectFactory,
 ) : Plugin<Settings> {
     override fun apply(settings: Settings) {
+        settings.configureDependencies()
+
         val extension = settings.extensions.create("settings", SettingsExtension::class.java)
 
         settings.gradle.settingsEvaluated {
@@ -26,7 +29,6 @@ abstract class SettingsPlugin @Inject constructor(
             }
         }
 
-        settings.configureDependencies()
         settings.configureProjects(extension)
     }
 
@@ -39,12 +41,10 @@ abstract class SettingsPlugin @Inject constructor(
             mavenCentral()
             google()
             maven { repository ->
-                // A repository must be specified. "registry" is a dummy.
-                repository.url = URI("https://maven.pkg.github.com/revanced/registry")
-                repository.credentials {
-                    it.username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
-                    it.password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
-                }
+                repository.name = "githubPackages"
+                // A repository must be specified. "revanced" is a dummy.
+                repository.url = URI("https://maven.pkg.github.com/revanced/revanced")
+                repository.credentials(PasswordCredentials::class.java)
             }
         }
     }
@@ -61,7 +61,7 @@ abstract class SettingsPlugin @Inject constructor(
             objectFactory.fileTree().from(rootDir.resolve(extensionsProjectPath)).matching {
                 it.include("**/build.gradle.kts")
             }.forEach {
-                include(it.relativeTo(rootDir).toPath().joinToString(":"))
+                include(it.relativeTo(rootDir).parentFile.toPath().joinToString(":"))
             }
         }
 

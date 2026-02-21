@@ -10,11 +10,6 @@ public abstract class app/revanced/patches/gradle/ExtensionPlugin : org/gradle/a
 	public fun apply (Lorg/gradle/api/Project;)V
 }
 
-public final class app/revanced/patches/gradle/ExtensionPlugin$inlined$sam$i$org_gradle_api_Action$0 : org/gradle/api/Action {
-	public fun <init> (Lkotlin/jvm/functions/Function1;)V
-	public final synthetic fun execute (Ljava/lang/Object;)V
-}
-
 public class app/revanced/patches/gradle/PatchesExtension {
 	public fun <init> ()V
 	public final fun about (Lkotlin/jvm/functions/Function1;)V
