@@ -1,10 +1,10 @@
 [versions]
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 pluginPublish = "1.2.1"
 #noinspection GradleDependency
-agp = "9.0.0"
+agp = "9.0.1"
 guava = "33.5.0-jre"
-vanniktechMavenPublish = "0.35.0"
+vanniktechMavenPublish = "0.36.0"
 
 [libraries]
 kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
