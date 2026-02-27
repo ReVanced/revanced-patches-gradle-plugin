@@ -174,7 +174,9 @@ abstract class PatchesPlugin : Plugin<Project> {
                 }
             }
 
-            extension.coordinates(group.toString(), project.name, version.toString())
+            afterEvaluate {
+                extension.coordinates(group.toString(), name, version.toString())
+            }
         }
 
         // Used by gradle-semantic-release-plugin.
