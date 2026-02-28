@@ -129,7 +129,7 @@ abstract class PatchesPlugin : Plugin<Project> {
                     )
                     .setMode(CompilationMode.RELEASE)
                     .setOutput(classesZipFile.toPath(), OutputMode.DexIndexed)
-                    .setMinApiLevel(27)
+                    .setMinApiLevel(26)
                     .build()
                     .let(D8::run)
 

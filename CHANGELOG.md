@@ -1,3 +1,17 @@
+# [1.0.0-dev.11](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2026-02-28)
+
+
+### Features
+
+* Downgrade minimum API level for D8 to 26 as 30 is needed anyway for spaces in field names ([02d4d38](https://github.com/ReVanced/revanced-patches-gradle-plugin/commit/02d4d38a0ef0fd25f0d14f5cb698c84f4b8290d3))
+
+# [1.0.0-dev.10](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2026-02-27)
+
+
+### Bug Fixes
+
+* Set Maven coordinates after patches project evaluates so that group, name and version are set ([35e1f52](https://github.com/ReVanced/revanced-patches-gradle-plugin/commit/35e1f52e2c43e534dfbac49ddcc8122e772be98f))
+
 # [1.0.0-dev.9](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2026-02-21)
 
 # [1.0.0-dev.8](https://github.com/ReVanced/revanced-patches-gradle-plugin/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2025-03-22)
